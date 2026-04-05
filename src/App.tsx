@@ -124,10 +124,21 @@ export default function App() {
     });
   }, [transactions, period]);
 
-  const categoryData = useMemo(() => {
+  const expenseCategoryData = useMemo(() => {
     const categories: Record<string, number> = {};
     filteredTransactions
       .filter(tx => tx.type === 'expense')
+      .forEach(tx => {
+        categories[tx.category] = (categories[tx.category] || 0) + tx.amount;
+      });
+    
+    return Object.entries(categories).map(([name, value]) => ({ name, value }));
+  }, [filteredTransactions]);
+
+  const incomeCategoryData = useMemo(() => {
+    const categories: Record<string, number> = {};
+    filteredTransactions
+      .filter(tx => tx.type === 'income')
       .forEach(tx => {
         categories[tx.category] = (categories[tx.category] || 0) + tx.amount;
       });
@@ -255,8 +266,8 @@ export default function App() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 opacity-80 hover:opacity-100 transition-opacity">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-80 hover:opacity-100 transition-opacity">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} barGap={4}>
@@ -276,28 +287,57 @@ export default function App() {
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <div className="h-48 w-full">
-                {categoryData.length > 0 ? (
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Категории доходов</h3>
+              <div className="h-40 w-full">
+                {incomeCategoryData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={categoryData}
+                        data={incomeCategoryData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={45}
                         outerRadius={60}
-                        paddingAngle={4}
+                        paddingAngle={2}
                         dataKey="value"
                       >
-                        {categoryData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4'][index % 7]} />
+                        {incomeCategoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#059669'][index % 5]} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value: number) => formatCurrency(value)} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-slate-300 text-sm italic">
+                  <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">
+                    Нет данных
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Категории расходов</h3>
+              <div className="h-40 w-full">
+                {expenseCategoryData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={expenseCategoryData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={60}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {expenseCategoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#e11d48'][index % 5]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">
                     Нет данных
                   </div>
                 )}
